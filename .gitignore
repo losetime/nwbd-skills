@@ -1,0 +1,19 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# 前端
+node_modules/
+dist/
+
+# 环境变量与本地数据
+.env
+.env.local
+backend/.env
+deploy/.env
+!**/.env.example
+data/
+*.log

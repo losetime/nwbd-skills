@@ -1,0 +1,42 @@
+[project]
+name = "nwbd-skills"
+version = "0.1.0"
+description = "技能包注册、校验、版本与发布服务"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    "sqlalchemy>=2.0.30",
+    "psycopg[binary]>=3.2.0",
+    "alembic>=1.13.0",
+    "pydantic-settings>=2.4.0",
+    "pyjwt>=2.9.0",
+    "argon2-cffi>=23.1.0",
+    "pyyaml>=6.0.1",
+    "markdown-it-py>=3.0.0",
+    "python-multipart>=0.0.9",
+    "httpx>=0.27.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.2.0",
+    "httpx>=0.27.0",
+    "ruff>=0.6.0",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+pythonpath = ["."]
+
+[tool.uv]
+package = false
