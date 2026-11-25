@@ -106,7 +106,9 @@ def validate_package(content: bytes, expected_name: str | None = None) -> Valida
         report.add_error("package", "不是合法的 zip 文件")
         return report
 
-    infos = [i for i in archive.infolist() if not i.is_dir()]
+    # is_dir() 只认正斜杠结尾；Windows 压缩的目录条目是「...\\」结尾，
+    # 归一化后再判断，否则会被当成文件并因末尾空段判为非法路径。
+    infos = [i for i in archive.infolist() if not i.is_dir() and not _entry_name(i).endswith("/")]
     if not infos:
         report.add_error("package", "压缩包内没有文件")
         return report
@@ -139,12 +141,13 @@ def validate_package(content: bytes, expected_name: str | None = None) -> Valida
             if f"{candidate}/SKILL.md" in names:
                 root = candidate
     skill_md_path = f"{root}/SKILL.md" if root else "SKILL.md"
-    if skill_md_path not in names:
+    skill_info = next((item for item in infos if _entry_name(item) == skill_md_path), None)
+    if skill_info is None:
         report.add_error("SKILL.md", "缺少 SKILL.md，且无法确定唯一根目录")
         return report
 
     try:
-        raw_text = archive.read(skill_md_path).decode("utf-8")
+        raw_text = archive.read(skill_info).decode("utf-8")
     except UnicodeDecodeError:
         report.add_error("SKILL.md", "SKILL.md 不是 UTF-8 编码")
         return report

@@ -60,11 +60,17 @@ def _extract_root(zip_path: Path, expected_root: str | None) -> None:
     temp_dir.mkdir(parents=True, exist_ok=True)
 
     with zipfile.ZipFile(zip_path) as archive:
-        entries = [info for info in archive.infolist() if not info.is_dir()]
-        # Windows 压缩工具会写反斜杠，统一成正斜杠后再判断根目录与落盘路径
-        names = [info.filename.replace("\\", "/") for info in entries]
+        # Windows 压缩工具会写反斜杠，统一成正斜杠后再判断根目录与落盘路径；
+        # 目录条目（含「...\\」结尾）一并跳过，避免当成文件写出。
+        pairs = [
+            (info, info.filename.replace("\\", "/"))
+            for info in archive.infolist()
+            if not info.is_dir()
+        ]
+        entries = [(info, name) for info, name in pairs if name and not name.endswith("/")]
+        names = [name for _, name in entries]
         root = expected_root or _detect_root(names)
-        for info, entry in zip(entries, names):
+        for info, entry in entries:
             parts = entry.split("/")
             if root and parts[0] == root:
                 parts = parts[1:]

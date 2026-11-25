@@ -114,3 +114,14 @@ def test_windows_backslash_paths_are_accepted() -> None:
     assert report.errors == []
     assert report.name == "demo-skill"
     assert {item["path"] for item in report.files} == {"SKILL.md", "references/a.md", "scripts/run.py"}
+
+
+def test_windows_directory_entries_are_skipped() -> None:
+    """Windows 压缩包里的目录条目以反斜杠结尾，不能当成文件校验。"""
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w") as archive:
+        archive.writestr("demo-skill\\SKILL.md", skill_md())
+        archive.writestr("demo-skill\\verify\\", "")
+    report = validate_package(buffer.getvalue())
+    assert report.errors == []
+    assert report.name == "demo-skill"
