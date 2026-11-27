@@ -50,8 +50,11 @@
                         <span class="flex h-10 w-10 items-center justify-center font-display text-[15px] text-white/95" :style="glyph(item.name)">
                             {{ item.name.slice(0, 1).toUpperCase() }}
                         </span>
-                        <span v-if="item.current_version" class="chip">v{{ item.current_version }}</span>
-                        <span v-else class="chip text-ink-faint">未发布</span>
+                        <div class="flex flex-col items-end gap-1.5">
+                            <span v-if="item.current_version" class="chip">v{{ item.current_version }}</span>
+                            <span v-else class="chip text-ink-faint">未发布</span>
+                            <span class="max-w-[140px] truncate text-[10.5px] text-ink-faint" :title="item.owner">所属 {{ item.owner }}</span>
+                        </div>
                     </div>
 
                     <h3 class="relative z-10 mt-4 font-display text-[17px] tracking-tight text-ink">{{ item.name }}</h3>

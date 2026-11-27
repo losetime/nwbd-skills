@@ -5,6 +5,8 @@
 
 from __future__ import annotations
 
+import uuid
+
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
@@ -29,6 +31,14 @@ def get_by_dingtalk_union_id(db: Session, union_id: str) -> User | None:
 def get_by_dingtalk_user_id(db: Session, user_id: str) -> User | None:
     """按钉钉 userId 取用户，用于预建账号或 unionId 补齐。"""
     return db.scalar(select(User).where(User.dingtalk_user_id == user_id))
+
+
+def get_users_by_ids(db: Session, user_ids: list[uuid.UUID]) -> dict[str, User]:
+    """按主键批量取用户，列表页解析所属人时调用，避免逐条查询。"""
+    if not user_ids:
+        return {}
+    rows = db.scalars(select(User).where(User.id.in_(user_ids))).all()
+    return {str(row.id): row for row in rows}
 
 
 def list_all(db: Session) -> list[User]:

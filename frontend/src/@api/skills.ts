@@ -11,6 +11,7 @@ export interface SkillSummary {
     current_version: number | null;
     file_count: number;
     size_bytes: number;
+    owner: string;
     updated_at: string;
 }
 
@@ -33,6 +34,7 @@ export interface SkillDetail {
     status: string;
     current_version: number | null;
     created_by: string | null;
+    owner: string;
     created_at: string;
     updated_at: string;
     versions: Version[];

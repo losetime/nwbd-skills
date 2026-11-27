@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from app.core.errors import AppError
 from app.modules.audit.service import record
+from app.modules.auth import repository as auth_repository
 from app.modules.auth.models import User
 from app.modules.package import storage
 from app.modules.package.validator import ensure_valid, validate_package
@@ -69,8 +70,20 @@ def _require_version(db: Session, skill: Skill, version: int | None) -> SkillVer
     return row
 
 
+def _owner_name(user: object | None) -> str:
+    """所属人展示名：优先显示名，其次用户名，无归属时给占位。"""
+    if user is None:
+        return "未归属"
+    display = (getattr(user, "display_name", "") or "").strip()
+    return display or str(getattr(user, "username", "") or "未归属")
+
+
 def _to_item(
-    skill: Skill, version: SkillVersion | None, version_count: int, current: SkillVersion | None = None
+    skill: Skill,
+    version: SkillVersion | None,
+    version_count: int,
+    current: SkillVersion | None = None,
+    owner: str = "",
 ) -> SkillListItem:
     return SkillListItem(
         name=skill.name,
@@ -81,6 +94,7 @@ def _to_item(
         current_version=current.version if current else None,
         file_count=version.file_count if version else 0,
         size_bytes=version.size_bytes if version else 0,
+        owner=owner,
         updated_at=skill.updated_at,
     )
 
@@ -91,10 +105,12 @@ def list_skills(db: Session, *, q: str | None, status: str | None, page: int, si
     currents = repository.current_versions(db, skills)
     latest = repository.latest_versions(db, skills)
     counts = repository.version_counts(db, skills)
+    owners = auth_repository.get_users_by_ids(db, [skill.created_by for skill in skills if skill.created_by])
     items = []
     for skill in skills:
         current = currents.get(skill.current_version_id) if skill.current_version_id else None
-        items.append(_to_item(skill, current or latest.get(skill.id), counts.get(skill.id, 0), current))
+        owner = _owner_name(owners.get(str(skill.created_by))) if skill.created_by else "未归属"
+        items.append(_to_item(skill, current or latest.get(skill.id), counts.get(skill.id, 0), current, owner))
     return items, total
 
 
@@ -103,6 +119,8 @@ def get_detail(db: Session, name: str) -> SkillDetail:
     skill = _require_skill(db, name)
     versions = repository.list_versions(db, skill.id)
     current = _current_version(db, skill)
+    owner_rows = auth_repository.get_users_by_ids(db, [skill.created_by] if skill.created_by else [])
+    owner = _owner_name(owner_rows.get(str(skill.created_by))) if skill.created_by else "未归属"
     return SkillDetail(
         name=skill.name,
         display_name=skill.display_name or skill.name,
@@ -110,6 +128,7 @@ def get_detail(db: Session, name: str) -> SkillDetail:
         status=skill.status,
         current_version=current.version if current else None,
         created_by=skill.created_by,
+        owner=owner,
         created_at=skill.created_at,
         updated_at=skill.updated_at,
         versions=[

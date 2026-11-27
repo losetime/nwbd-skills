@@ -18,6 +18,7 @@
                 <p class="mt-3 max-w-2xl text-[13.5px] leading-6 text-ink-soft">{{ detail.summary || "暂无描述" }}</p>
                 <div class="mt-4 flex flex-wrap items-center gap-2 text-[11px] text-ink-faint">
                     <span class="chip">当前 v{{ detail.current_version ?? "—" }}</span>
+                    <span class="chip">所属 {{ detail.owner || "未归属" }}</span>
                     <span class="chip">{{ files.length }} 个文件</span>
                     <span class="chip">{{ formatSize(selectedVersionInfo?.size_bytes ?? 0) }}</span>
                     <span class="chip">更新于 {{ formatDate(detail.updated_at) }}</span>

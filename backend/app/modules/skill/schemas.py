@@ -20,6 +20,7 @@ class SkillListItem(BaseModel):
     current_version: int | None
     file_count: int
     size_bytes: int
+    owner: str = ""
     updated_at: dt.datetime
 
 
@@ -42,6 +43,7 @@ class SkillDetail(BaseModel):
     status: str
     current_version: int | None
     created_by: uuid.UUID | None = None
+    owner: str = ""
     created_at: dt.datetime
     updated_at: dt.datetime
     versions: list[VersionOut]
